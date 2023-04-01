@@ -3,21 +3,20 @@ import React from "react";
 import { SearchBar } from "../SearchBar";
 import { SearchResults } from "../SearchResults";
 import { Playlist } from "../Playlist";
+import Spotify from "../../util/Spotify";
 export class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      searchResults: [
-        { name: "Taler", artist: "Talerartist", album: "TalerAlbum", id: "" },
-      ],
-      playlistName: "T",
-      playlistTracks: [
-        { name: "Taler", artist: "Talerartist", album: "TalerAlbum", id: "" },
-      ],
+      searchResults: [],
+      playlistName: "New Playlist",
+      playlistTracks: [],
     };
     this.addTrack = this.addTrack.bind(this);
     this.removeTrack = this.removeTrack.bind(this);
     this.updatePlaylistName = this.updatePlaylistName.bind(this);
+    this.savePlaylist = this.savePlaylist.bind(this);
+    this.search = this.search.bind(this);
   }
   addTrack(track) {
     if (
@@ -38,6 +37,14 @@ export class App extends React.Component {
   updatePlaylistName(name) {
     this.setState({ playlistName: name });
   }
+  async savePlaylist() {
+    const trackURIs = this.state.playlistTracks.map((track) => track.uri);
+    await Spotify.savePlaylist(this.state.playlistName, trackURIs);
+  }
+  async search(term) {
+    const res = await Spotify.search(term);
+    this.setState({ searchResults: res });
+  }
   render() {
     return (
       <div>
@@ -45,7 +52,7 @@ export class App extends React.Component {
           Ja<span className="highlight">mmm</span>ing
         </h1>
         <div className="App">
-          <SearchBar />
+          <SearchBar onSearch={this.search} />
           <div className="App-playlist">
             <SearchResults
               searchResults={this.state.searchResults}
@@ -54,12 +61,16 @@ export class App extends React.Component {
             <Playlist
               name={this.state.playlistName}
               tracks={this.state.playlistTracks}
-              onRemove={this.state.removeTrack}
+              onRemove={this.removeTrack}
               onNameChange={this.updatePlaylistName}
+              onSave={this.savePlaylist}
             />
           </div>
         </div>
       </div>
     );
+  }
+  componentDidMount() {
+    Spotify.getAccessToken();
   }
 }

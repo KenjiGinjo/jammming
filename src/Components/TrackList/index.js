@@ -18,7 +18,4 @@ export class TrackList extends React.Component {
       </div>
     );
   }
-  componentDidMount() {
-    console.log(this.props);
-  }
 }
